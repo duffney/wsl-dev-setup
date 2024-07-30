@@ -1,0 +1,50 @@
+---
+- name: Set kubectl version
+  ansible.builtin.shell: curl -L -s https://dl.k8s.io/release/stable.txt
+  register: kubectl_version
+
+- name: Download kubectl binary
+  ansible.builtin.get_url:
+    url: "https://dl.k8s.io/release/{{ kubectl_version.stdout }}/bin/linux/amd64/kubectl"
+    dest: /tmp/kubectl
+    mode: '0755'
+
+- name: Download kubectl checksum
+  ansible.builtin.get_url:
+    url: "https://dl.k8s.io/release/{{ kubectl_version.stdout }}/bin/linux/amd64/kubectl.sha256"
+    dest: /tmp/kubectl.sha256
+
+- name: Ensure checksum file is properly formatted
+  ansible.builtin.shell: "echo \"$(cat /tmp/kubectl.sha256)  kubectl\" > /tmp/kubectl.sha256"
+  args:
+    executable: /bin/bash
+
+- name: Verify kubectl checksum
+  ansible.builtin.command: sha256sum --check kubectl.sha256
+  args:
+    chdir: /tmp
+  register: checksum_result
+  failed_when: "checksum_result.rc != 0"
+
+- name: Install kubectl
+  ansible.builtin.copy:
+    src: /tmp/kubectl
+    dest: /usr/local/bin/kubectl
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+  when: checksum_result.rc == 0
+
+- name: Clean up kubectl binary
+  ansible.builtin.file:
+    path: /tmp/kubectl
+    state: absent
+  when: checksum_result.rc == 0
+
+- name: Clean up kubectl checksum file
+  ansible.builtin.file:
+    path: /tmp/kubectl.sha256
+    state: absent
+  when: checksum_result.rc == 0
+

@@ -1,0 +1,47 @@
+---
+- name: "Neovim | Install dependencies"
+  apt:
+    pkg:
+      - 'libtool'
+      - 'libtool-bin'
+      - 'autoconf'
+      - 'automake'
+      - 'cmake'
+      - 'g++'
+      - 'pkg-config'
+      - 'unzip'
+      - 'curl'
+      - 'doxygen'
+    state: present
+  register: apt_result
+  become: true
+
+- name: Download Neovim tarball
+  ansible.builtin.get_url:
+    url: https://github.com/neovim/neovim/releases/download/v{{ neovim_version }}/nvim-linux64.tar.gz
+    dest: /tmp/nvim-linux64.tar.gz
+    mode: 0644
+  become: true
+
+- name: Extract Neovim tarball
+  ansible.builtin.unarchive:
+    src: /tmp/nvim-linux64.tar.gz
+    dest: /usr/local
+    remote_src: yes
+    creates: /usr/local/nvim-linux64
+    mode: 0755
+  become: true
+
+- name: Create symlink for nvim
+  ansible.builtin.file:
+    src: /usr/local/nvim-linux64/bin/nvim
+    dest: /usr/local/bin/nvim
+    state: link
+  become: true
+
+- name: Clean up temporary tarball
+  ansible.builtin.file:
+    path: /tmp/nvim-linux64.tar.gz
+    state: absent
+  become: true
+

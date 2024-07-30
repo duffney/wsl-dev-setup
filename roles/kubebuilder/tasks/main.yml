@@ -1,0 +1,32 @@
+---
+- name: Retrieve GOOS
+  ansible.builtin.command: go env GOOS
+  register: goos_output
+
+- name: Retrieve GOARCH
+  ansible.builtin.command: go env GOARCH
+  register: goarch_output
+
+- name: Set fact for GOOS
+  ansible.builtin.set_fact:
+    goos: "{{ goos_output.stdout | trim }}"
+  changed_when: false
+
+- name: Set fact for GOARCH
+  ansible.builtin.set_fact:
+    goarch: "{{ goarch_output.stdout | trim }}"
+  changed_when: false
+
+- name: Download kubebuilder
+  ansible.builtin.get_url:
+    url: "https://go.kubebuilder.io/dl/latest/{{ goos }}/{{ goarch }}"
+    dest: /usr/local/bin/kubebuilder
+    mode: '0755'
+  become: true
+
+- name: Make kubebuilder executable
+  ansible.builtin.file:
+    path: /usr/local/bin/kubebuilder
+    mode: '0755'
+  become: true
+

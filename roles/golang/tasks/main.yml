@@ -1,0 +1,41 @@
+---
+- name: "Go-Lang | Install dependencies"
+  apt:
+    pkg:
+      - 'curl'
+      - 'gcc'
+      - 'git'
+      - 'findutils'
+      - 'make'
+      - 'rsync'
+      - 'tar'
+      - 'jq'
+    state: present
+  register: apt_result
+  become: true
+
+- name: Install Go from source
+  ansible.builtin.get_url:
+    url: https://golang.org/dl/go{{ golang_version }}.linux-amd64.tar.gz
+    dest: /tmp/go{{ golang_version }}.linux-amd64.tar.gz
+    mode: 0644
+
+- name: Extract Go
+  ansible.builtin.unarchive:
+    src: /tmp/go{{ golang_version }}.linux-amd64.tar.gz
+    dest: /usr/local
+    remote_src: yes
+    creates: /usr/local/go{{ golang_version }}
+    mode: 0755
+
+- name: Set path in profile
+  ansible.builtin.lineinfile:
+   dest: /etc/profile
+   insertafter: EOF
+   line: "PATH=$PATH:/usr/local/go/bin"
+
+- name: Install golangci-lint
+  ansible.builtin.shell:
+    cmd: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.59.1
+  args:
+    executable: /bin/bash

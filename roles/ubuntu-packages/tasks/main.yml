@@ -1,0 +1,24 @@
+---
+- name: Update apt cache
+  become: yes
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Install common packages
+  become: yes
+  ansible.builtin.apt:
+    pkg:
+      - tree
+      - bash
+      - libssl-dev
+      - pkg-config
+      - curl
+      - ripgrep
+      - xclip
+      - coreutils
+      - wget
+
+- name: Remove unused pkgs from cahce
+  become: true
+  ansible.builtin.apt:
+    autoclean: yes

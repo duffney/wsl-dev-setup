@@ -1,0 +1,36 @@
+---
+- name: Download oras 
+  ansible.builtin.get_url:
+    url: https://github.com/oras-project/oras/releases/download/v{{ oras_version }}/oras_{{ oras_version }}_linux_amd64.tar.gz
+    dest: /tmp/oras_{{ oras_version }}_linux_amd64.tar.gz
+    mode: 0644
+
+- name: Ensure target directory exists
+  ansible.builtin.file:
+    path: /tmp/oras
+    state: directory
+
+- name: Extract oras tarball
+  ansible.builtin.unarchive:
+    src: /tmp/oras_{{ oras_version }}_linux_amd64.tar.gz
+    dest: /tmp/oras/
+    remote_src: yes
+
+- name: Copy oras binary to /usr/local/bin
+  ansible.builtin.copy:
+    src: /tmp/oras/oras
+    dest: /usr/local/bin/oras
+    mode: '0755'
+  become: true 
+
+- name: Remove tmp dir
+  ansible.builtin.file:
+    path: /tmp/oras
+    state: absent
+  become: true
+
+- name: Remove tarball
+  ansible.builtin.file:
+    path: /tmp/oras_{{ oras_version }}_linux_amd64.tar.gz
+    state: absent
+  become: true

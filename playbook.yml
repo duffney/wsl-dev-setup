@@ -1,0 +1,15 @@
+---
+- name: Set up dev environment
+  hosts: local
+  roles:
+    - ubuntu-packages
+    - golang
+    #- tmux
+    #- neovim
+    #- docker
+    #- kubectl
+    #- kubebuilder
+    #- kind
+    #- helm
+    #- oras
+    - github_cli
