@@ -17,6 +17,7 @@
       - xclip
       - coreutils
       - wget
+      - unzip
 
 - name: Remove unused pkgs from cahce
   become: true
